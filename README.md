@@ -54,6 +54,7 @@ If you don't want to restrict public access, set `allowedIps=*` instead.
 A [CloudFormation Custom Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html) is used to do cross-region configuration management. You will need to run the following command in the custom_resource directory to install the needed python package:
 
 ```
+cd custom_resource
 pip install crhelper -t .
 ```
 
