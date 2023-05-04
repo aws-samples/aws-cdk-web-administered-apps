@@ -13,9 +13,7 @@ The solution is built around shared storage, provided by [Amazon Elastic File Sy
 
 For the database layer, you can either create a new database on the [Amazon Relational Database Service (RDS)](https://aws.amazon.com/rds/), or you can bring an RDS snapshot and its [Secrets Manager](https://aws.amazon.com/secrets-manager/)-hosted credentials. If you have an existing database host, you can also supply your credentials for that in a Secrets Manager secret.
 
-## Running this project
 
-Refer to the instructions near the bottom of this README to see instructions about installing CDK and running this CDK project.
 
 ## Solution details
 
@@ -29,38 +27,7 @@ Data in-transit is encrypted through the use of [AWS Certificate Manager (ACM)](
 
 You can specify the AMI to be used in your application stack, which means you can leverage [EC2 Image Builder](https://aws.amazon.com/image-builder/) to pre-configure AMIs with needed software. If you don't need to do that, you can simply supply [userdata](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) scripts or commands that will configure the instance before bringing it into service.
 
-## Prerequisites
-
-### Create a hosted zone in the target account
-
-This is needed to enable the creation of DNS records and certificates for your site. This needs to be manually created via the AWS console and can be achieved by following [the instructions here](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html). You can delegate any domain you control to Route 53 and use it with this project. You can also [register a domain via Route 53](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html) if you don't currently have one.
-
-### Create and configure the parameters.properties file
-
-Copy the `parameters-template.properties` file (in the root folder of the project) to a file called `parameters.properties` and save it in the root folder. Open it with a text editor and 
-
-* replace `yourhostname.com` with the name of the hosted zone you created in the previous step.
-* replace `1.2.3.4` with your admin IP address (usually [the public IP of the computer you are using now](https://www.google.com/search?q=whats+my+ip)).
-
-If you want to restrict public access to your site, change `2.3.4.5/25` to the IP range you want to allow (don't forget to also include your admin IP in CIDR notation (ie include the netmask, as in the example)). You can add multiple allowed CIDR blocks by providing a comma-separated list of `allowedIps`. 
-
-If you don't want to restrict public access, set `allowedIps=*` instead.
-
->#### Committing the parameters file
->If you have forked this project into your own private repository, you can commit the `parameters.properties` file to your repo. To do that, comment out the line in the `.gitignore` file. 
-
-### Install the custom resource helper
-
-A [CloudFormation Custom Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html) is used to do cross-region configuration management. You will need to run the following command in the custom_resource directory to install the needed python package:
-
-```
-cd custom_resource
-pip install crhelper -t .
-```
-
-You can read more about this solution in [this blog post](https://aws.amazon.com/blogs/infrastructure-and-automation/aws-cloudformation-custom-resource-creation-with-python-aws-lambda-and-crhelper/).
-
-### Configuration data
+## Configuration
 
 To enable this project to be used to deploy multiple different web projects, all configuration is done in the `parameters.properties` file. The configuration items are named and annotated with comments that hopefully make it clear what they are.
 
@@ -74,7 +41,47 @@ To deploy a specific stanza's config, issue a deploy command using the appropria
 $ cdk deploy wp-dev-network-stack -c env=dev -c app=wp
 ```
 
-## The Data layer
+## Prerequisites
+
+### Install the AWS CDK
+
+Refer to the instructions near the bottom of this README to see instructions about installing CDK and running this CDK project.
+
+### Create a hosted zone in the target account
+
+This is needed to enable the creation of DNS records and certificates for your site. This needs to be manually created via the AWS console and can be achieved by following [the instructions here](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html). You can delegate any domain you control to Route 53 and use it with this project. You can also [register a domain via Route 53](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html) if you don't currently have one.
+
+## Running this project
+
+Clone the project to your local machine and navigate to the project root. Follow the steps in the [Generic CDK instructions]() to create the Python virtual environment (venv) and install the dependencies.
+
+### Create and configure the parameters.properties file
+
+Copy the `parameters-template.properties` file (in the root folder of the project) to a file called `parameters.properties` and save it in the root folder. Open it with a text editor and 
+
+* replace `yourhostname.com` with the name of the hosted zone you created in the previous step.
+* replace `192.0.2.0` with your admin IP address (usually [the public IP of the computer you are using now](https://www.google.com/search?q=whats+my+ip)).
+
+If you want to restrict public access to your site, change `192.0.2.0/24` to the IP range you want to allow (don't forget to also include your admin IP in CIDR notation (ie include the netmask, as in the example)). You can add multiple allowed CIDR blocks by providing a comma-separated list of `allowedIps`. 
+
+If you don't want to restrict public access, set `allowedIps=*` instead.
+
+#### Committing the parameters file
+
+If you have forked this project into your own private repository, you can commit the `parameters.properties` file to your repo. To do that, comment out the line in the `.gitignore` file. 
+
+### Install the custom resource helper
+
+A [CloudFormation Custom Resource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html) is used to do cross-region configuration management. You will need to run the following command in the custom_resource directory to install the needed python package:
+
+```
+cd custom_resource
+pip install crhelper -t .
+```
+
+You can read more about this solution in [this blog post](https://aws.amazon.com/blogs/infrastructure-and-automation/aws-cloudformation-custom-resource-creation-with-python-aws-lambda-and-crhelper/).
+
+### Configure the Database layer
 
 Before you start deploying stacks, decide whether you want to include a data layer as part of this deployment or not. The `dbConfig` parameter determines what will happen.
 
@@ -95,9 +102,26 @@ If you specify either `instance` or `cluster` you should also configure the othe
 * `dbInstanceType` the instance type you want (NB these vary by service) - don't prefix with `db.` as CDK will automatically prepend it.
 * if requesting a cluster, `dbClusterSize` will determine how many Aurora replicas are created
 
+You can choose between mysql or postgres for the database engine, and the other settings will be determined by that choice.
+
+Note you will need to use an AMI that has the CLI pre-installed, like Amazon Linux 2, or install the AWS CLI yourself with a user data command
+If instead of creating a new empty database you want to spin one up from a snapshot, you can supply the snapshot name via the dbSnapshot parameter.
+
 #### Database secret
 
 If you create an RDS instance or Aurora cluster as part of this deployment the secret will be created and managed for you.
+
+When you choose to create a new database instance or cluster, credentials are automatically created. These credentials are stored in a Secrets Manager secret and made available to your Compute stack via the `db_secret_command` that can be interpolated into your user data commands. It is a single-line bash command that returns the JSON from the AWS CLI command `aws secretsmanager get-secret-value`. 
+
+Your script can then reference these values like this:
+
+```
+SECRET=$({db_secret_command})
+USERNAME=`echo $SECRET | jq -r '.username'`
+PASSWORD=`echo $SECRET | jq -r '.password'`
+DBNAME=`echo $SECRET | jq -r '.dbname'`
+HOST=`echo $SECRET | jq -r '.host'`
+```
 
 If you are creating a database from a snapshot, make sure your Secrets Manager secret and RDS Snapshot are in the target region. 
 
@@ -113,6 +137,7 @@ If supplying the secret for an existing database, the secret must be contain at 
 ```
 
 > The name for the secret must match the following template - the `app` value followed by the `env` value (both in Pascal case), followed by "DatabaseSecret" and whatever other characters you like. Eg for app=wp and env=dev your secret name should be `WpDevDatabaseSecret-optionalstuffhere`
+
 
 ## Deploying the stacks
 
