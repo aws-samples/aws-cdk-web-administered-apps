@@ -1,7 +1,7 @@
 
 # Running Web-Administered Apps on AWS
 
-## With multi-layered securely and high availability 
+## With multi-layered security and high availability 
 
 This CDK+Python project is designed to support the web administered app model (eg [WordPress](https://wordpress.org), [Node-RED](https://nodered.org/)), where the admin interface is hosted within the same codebase as the front-end application. 
 
