@@ -1,7 +1,7 @@
 
 # Running Web-Administered Apps on AWS
 
-## More securely and with high availability 
+## With multi-layered securely and high availability 
 
 This CDK+Python project is designed to support the web administered app model (eg [WordPress](https://wordpress.org), [Node-RED](https://nodered.org/)), where the admin interface is hosted within the same codebase as the front-end application. 
 
@@ -29,7 +29,7 @@ You can specify the AMI to be used in your application stack, which means you ca
 
 ## Configuration
 
-To enable this project to be used to deploy multiple different web projects, all configuration is done in the `parameters.properties` file. The configuration items are named and annotated with comments that hopefully make it clear what they are.
+To enable this project to be used to deploy multiple different web projects, all configuration is done in the `parameters.properties` file. The configuration items are named and annotated with comments that explain their function.
 
 The `[default]` stanza sets the default app name and environment that will be deployed if you don't specify them on the command line.
 
@@ -53,22 +53,20 @@ This is needed to enable the creation of DNS records and certificates for your s
 
 ## Running this project
 
-Clone the project to your local machine and navigate to the project root. Follow the steps in the [Generic CDK instructions]() to create the Python virtual environment (venv) and install the dependencies.
+Clone the project to your local machine and navigate to the project root. Follow the steps in the [Generic CDK instructions](#generic-cdk-instructions) to create the Python virtual environment (`venv`) and install the dependencies.
 
 ### Create and configure the parameters.properties file
 
 Copy the `parameters-template.properties` file (in the root folder of the project) to a file called `parameters.properties` and save it in the root folder. Open it with a text editor and 
 
-* replace `yourhostname.com` with the name of the hosted zone you created in the previous step.
+* replace `example.com` with the name of the hosted zone you created in the previous step.
 * replace `192.0.2.0` with your admin IP address (usually [the public IP of the computer you are using now](https://www.google.com/search?q=whats+my+ip)).
 
 If you want to restrict public access to your site, change `192.0.2.0/24` to the IP range you want to allow (don't forget to also include your admin IP in CIDR notation (ie include the netmask, as in the example)). You can add multiple allowed CIDR blocks by providing a comma-separated list of `allowedIps`. 
 
 If you don't want to restrict public access, set `allowedIps=*` instead.
 
-#### Committing the parameters file
-
-If you have forked this project into your own private repository, you can commit the `parameters.properties` file to your repo. To do that, comment out the line in the `.gitignore` file. 
+>If you have forked this project into your own private repository, you can commit the `parameters.properties` file to your repo. To do that, comment out the line in the `.gitignore` file. 
 
 ### Install the custom resource helper
 
@@ -102,7 +100,7 @@ If you specify either `instance` or `cluster` you should also configure the othe
 * `dbInstanceType` the instance type you want (NB these vary by service) - don't prefix with `db.` as CDK will automatically prepend it.
 * if requesting a cluster, `dbClusterSize` will determine how many Aurora replicas are created
 
-You can choose between mysql or postgres for the database engine, and the other settings will be determined by that choice.
+You can choose between `mysql` or `postgres` for the database engine, and the other settings will be determined by that choice.
 
 Note you will need to use an AMI that has the CLI pre-installed, like Amazon Linux 2, or install the AWS CLI yourself with a user data command
 If instead of creating a new empty database you want to spin one up from a snapshot, you can supply the snapshot name via the dbSnapshot parameter.
@@ -141,7 +139,7 @@ If supplying the secret for an existing database, the secret must be contain at 
 
 ## Deploying the stacks
 
-The stacks are below. You can deploy them all individually if you like, by using the specific stack names (these will vary as per the info above), eg:
+The commands to deploy the stacks defined in the CDK app are listed below. You can deploy them all individually if you like, by using the specific stack names (these will vary as per the info above), eg:
 
 ```
 cdk deploy wp-dev-network-stack -c app=wp -c env=dev
@@ -157,13 +155,13 @@ cdk deploy wp-dev-network-stack -c app=wp -c env=dev
 cdk deploy wp-dev-database-stack -c app=wp -c env=dev
 ```
 
-You can then trigger the deployment of the compute and load balancer stacks by deploying:
+You can then trigger the deployment of the compute stack by deploying:
 
 ```
 cdk deploy wp-dev-compute-stack -c app=wp -c env=dev
 ```
 
-Once the compute/load balancer layer is deployed you will be able to 
+Once the compute stack is deployed you will be able to 
 
 ```
 cdk deploy wp-dev-cdn-stack -c env=dev
@@ -181,12 +179,11 @@ If you connect via the IP address you configured in the `adminIps` configuration
 
 Users who connect to your site from an IP not in your `allowedIps` list will be connected to your `fleet` instances and will be unable to alter the filesystem (eg install plugins, upload media etc).
 
-> ## Note
 > If you find you need to re-deploy the same app-env combination, manually remove the parameter store items and the replicated Secret created in `us-east-1`. You should also delete the `cdk.context.json` file, as it caches values you will be replacing.
 
 ## About the example configurations
 
-The properties file supplied with this project has configurations that will deploy [WordPress](https://wordpress.org) and [Node-RED](https://nodered.org/)).
+The properties file supplied with this project has configurations that will deploy [WordPress](https://wordpress.org) and [Node-RED](https://nodered.org/).
 
 You can use these configurations as-is to deploy your own WordPress or Node-RED instances, or you can create your own config stanzas for other applications, including bespoke applications you have created.
 
@@ -223,12 +220,7 @@ This is a project built using CDK with Python. Install CDK by using the instruct
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+This project is set up like a standard Python project.  The initialization process also creates a virtualenv within this project, stored under the `.venv` directory.  To create the virtualenv it assumes that there is a `python3` (or `python` for Windows) executable in your path with access to the `venv` package. If for any reason the automatic creation of the virtualenv fails, you can create the virtualenv manually.
 
 To manually create a virtualenv on MacOS and Linux:
 
@@ -236,8 +228,7 @@ To manually create a virtualenv on MacOS and Linux:
 $ python3 -m venv .venv
 ```
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+After the init process completes and the virtualenv is created, you can use the following step to activate your virtualenv.
 
 ```
 $ source .venv/bin/activate
@@ -261,9 +252,7 @@ At this point you can now synthesize the CloudFormation template for this code.
 $ cdk synth
 ```
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+To add additional dependencies, for example other CDK libraries, just add them to your `setup.py` file and rerun the `pip install -r requirements.txt` command.
 
 ## Useful commands
 
