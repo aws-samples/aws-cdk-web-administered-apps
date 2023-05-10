@@ -172,7 +172,7 @@ class CdnStack(Stack):
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED,
             enforce_ssl=True,
-            access_control=s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+            object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
         )
 
         alb_hostname = ssm.StringParameter.value_from_lookup(
