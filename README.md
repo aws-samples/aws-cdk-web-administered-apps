@@ -47,6 +47,17 @@ $ cdk deploy wp-dev-network-stack -c env=dev -c app=wp
 
 Refer to the instructions near the bottom of this README to see instructions about installing CDK and running this CDK project.
 
+### CDK Bootstrapping
+
+You will need to [bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) both the `us-east-1` Region and the home region you plan to host your application into, eg
+
+```
+cdk bootstrap aws://123456789012/us-east-1
+cdk bootstrap aws://123456789012/ap-southeast-2
+```
+
+where `123456789012` is replaced with your account ID and `ap-southeast-2` is replaced with your primary Region.
+
 ### Create a hosted zone in the target account
 
 This is needed to enable the creation of DNS records and certificates for your site. This needs to be manually created via the AWS console and can be achieved by following [the instructions here](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html). You can delegate any domain you control to Route 53 and use it with this project. You can also [register a domain via Route 53](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html) if you don't currently have one.
